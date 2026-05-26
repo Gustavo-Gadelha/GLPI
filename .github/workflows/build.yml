@@ -22,8 +22,7 @@ jobs:
           sed -i 's/GLPI_DB_PASSWORD=/GLPI_DB_PASSWORD=ci_password/' .env
 
       - name: Build containers
-        run: docker compose create
-
-      - name: Show logs on failure
-        if: failure()
-        run: docker compose logs
+        uses: hoverkraft-tech/compose-action@v2.6.0
+        with:
+          compose-file: compose.yaml
+          up-flags: "--no-start"
