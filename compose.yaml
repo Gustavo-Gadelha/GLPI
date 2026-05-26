@@ -1,0 +1,36 @@
+name: glpi
+
+services:
+  glpi:
+    image: glpi/glpi:11.0
+    container_name: glpi
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - glpi_data:/var/glpi
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:9.7.0
+    container_name: mysql
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  glpi_data:
+  mysql_data:

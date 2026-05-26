@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env from example
+        run: | 
+          cp .env.example .env
+          sed -i 's/GLPI_DB_NAME=/GLPI_DB_NAME=glpi/' .env
+          sed -i 's/GLPI_DB_USER=/GLPI_DB_USER=glpi/' .env
+          sed -i 's/GLPI_DB_PASSWORD=/GLPI_DB_PASSWORD=ci_password/' .env
+
+      - name: Build and start containers
+        run: docker compose up -d --wait
+
+      - name: Check GLPI is reachable
+        run: |
+          curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:8080
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
